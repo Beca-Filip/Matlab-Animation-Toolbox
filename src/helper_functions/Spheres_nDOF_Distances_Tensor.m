@@ -1,11 +1,11 @@
-function D = Spheres_nDOF_Distances(CTR, spheres)
-%SPHERES_NDOF_DISTANCES calculates the distances between collision spheres
-%in a planar nDOF kinematic chain across time, given the forward kinematics
-%of the sphere centers and the spheres structure containing sphere
-%parameters.
+function D = Spheres_nDOF_Distances_Tensor(CTR, spheres)
+%SPHERES_NDOF_DISTANCES_TENSOR calculates the distances between collision 
+%spheres in a planar nDOF kinematic chain across time, given the forward 
+%kinematics of the sphere centers and the spheres structure containing 
+%sphere parameters.
 %
-%   D = SPHERES_NDOF_DISTANCES(CTR, spheres) takes in the tensor of sphere
-%   centers' kinematics (3 x Number of samples x Number of spheres)
+%   D = SPHERES_NDOF_DISTANCES_TENSOR(CTR, spheres) takes in the tensor of 
+%   sphere centers' kinematics (3 x Number of samples x Number of spheres)
 %   alongside a structure containing the spheres radii and parent segments.
 %   Returns a tensor D whose slices are matrices containing distances
 %   between spheres with corresponding indices.
@@ -35,8 +35,9 @@ for ss1 = 1 : Ns - 1
         % Get current sphere 2
         C2 = squeeze(CTR(:, :, ss2));
         
-        % Compare
-        D(ss1, ss2, :) = sqrt(sum((C1-C2).^2));        
+        % Calculate the distance as the distance between the centers minus
+        % the sum of the radii
+        D(ss1, ss2, :) = sqrt(sum((C1-C2).^2)) - (spheres.radii(ss1) + spheres.radii(ss2));        
     end
 end
 end

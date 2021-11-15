@@ -1,16 +1,16 @@
-function PTS = Points_FKM_nDOF_Tensor(q,L,C,PC)
-%POINTS_FKM_NDOF_TENSOR implements the forward kinematic equations for
+function PTS = Points_FKM_nDOF_Cell(q,L,C,PC)
+%POINTS_FKM_NDOF_CELL implements the forward kinematic equations for
 %given points fixed to various segments of an n-DOF planar manipulator,
-%using vectorized joint angles angles. Returns a tensor whose slices are 
-%matrices corresponding to sequences of position vectors of the different 
+%using vectorized joint angles angles. Returns a cell array whose elements
+%are matrices corresponding to sequences of position vectors of the different 
 %points along the trajectory.
 %Assumes the proximal Denavit-Hartenberg assignement of coordinate systems.
 %
-%   PTS = POINTS_FKM_NDOF_TENSOR(q,L,C,PC) takes in the matrix of joint 
-%   angles q (Number of Joints x Number of samples) alongside the nD vector of 
-%   segment lengths L, a (3 x Number of points) matrix of points' relative 
+%   PTS = POINTS_FKM_NDOF_CELL(q,L,C,PC) takes in the matrix of joint
+%   angles q (Number of Joints x Number of samples) alongside the nD vector of
+%   segment lengths L, a (3 x Number of points) matrix of points' relative
 %   positions with respect to their parent segment C, and a (1 x Number of
-%   points) vector containing indices of the parent segments of the points 
+%   points) vector containing indices of the parent segments of the points
 %   in C : PC.
 
     
@@ -19,8 +19,8 @@ n = size(q, 1); % Number of Segments
 N = size(q, 2); % Number of Samples
 nP = size(C, 2);    % Number of points
 
-% Prealocate output tensor of Point forward kinematics
-PTS = zeros(3, N, nP);  % Prealocate output
+% Prealocate output cell array of Point forward kinematics
+PTS = cell(1, nP);  % Prealocate output (each element is a 3xN matrix)
 
 
 % Compute positions
@@ -38,8 +38,7 @@ for kk = 1 : Njj
     Yc = C(2, Pjj(kk));    % Y coordinate of the points who're children to segment 0 (in global frame)
 
     % Get the global X and Y coordinates of the current point
-    PTS(1, :, Pjj(kk)) = Xc .* ones0;
-    PTS(2, :, Pjj(kk)) = Yc .* ones0;
+    PTS{Pjj(kk)} = [(Xc .* ones0); (Yc .* ones0); zeros(1, N)];
 end
 
 % For the first joint
@@ -59,8 +58,10 @@ for kk = 1 : Njj
     Yc = C(2, Pjj(kk));    % Y coordinate of the points who're children to segment 1 (perpendicular to the segment)
 
     % Calculate the global X and Y coordinates of the current point
-    PTS(1, :, Pjj(kk)) = (Xc .* cq - Yc .* sq);
-    PTS(2, :, Pjj(kk)) = (Xc .* sq + Yc .* cq);
+%     PTS{Pjj(kk)}(1, :) = (Xc .* cq - Yc .* sq);
+%     PTS{Pjj(kk)}(2, :) = (Xc .* sq + Yc .* cq);
+%     PTS{Pjj(kk)}(3, :) = zeros(1, N);
+    PTS{Pjj(kk)} = [(Xc .* cq - Yc .* sq); (Xc .* sq + Yc .* cq); zeros(1, N)];
 end
 
 % Calculate the global X and Y coordinates of the 1st distal segment
@@ -89,8 +90,10 @@ for jj = 2 : n
         % Calculate the global X and Y coordinates of the current point by
         % adding its position relative to its parent segment frame to the
         % global position of the parent segment frame
-        PTS(1, :, Pjj(kk)) = Gx + Xc .* cq - Yc .* sq;
-        PTS(2, :, Pjj(kk)) = Gy + Xc .* sq + Yc .* cq;
+%         PTS{Pjj(kk)}(1, :) = Gx + Xc .* cq - Yc .* sq;
+%         PTS{Pjj(kk)}(2, :) = Gy + Xc .* sq + Yc .* cq;
+%         PTS{Pjj(kk)}(3, :) = zeros(1, N);
+        PTS{Pjj(kk)} = [(Gx + Xc .* cq - Yc .* sq); (Gy + Xc .* sq + Yc .* cq); zeros(1, N)];
     end
 
     % Update the global position of the local segment frame to the
